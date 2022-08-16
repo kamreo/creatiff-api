@@ -36,7 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $email;
 
     #[ORM\Column(type: 'string', unique: true)]
-    private $nickname;
+    private $username;
 
     #[ORM\Column(type: 'json')]
     private $roles = [];
@@ -61,14 +61,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getNickname()
+    public function getUsername()
     {
-        return $this->nickname;
+        return $this->username;
     }
 
-    public function setNickname($nickname): self
+    public function setUsername($username): self
     {
-        $this->nickname = $nickname;
+        $this->username = $username;
 
         return $this;
     }
