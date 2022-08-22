@@ -240,5 +240,7 @@ mysql/
 app/vendor/
 app/public/bundles
 app//var/
+app/public/media
+app/config/jwt
 
 # End of https://www.toptal.com/developers/gitignore/api/symfony,phpstorm,phpstorm+all
