@@ -1,17 +1,21 @@
 <?php
 
 namespace App\Entity;
+
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
     collectionOperations: [
-        "get",
+        "get" => ['normalization_context' => ['groups' => ['read']],],
         "post",
     ],
     itemOperations: [
-        "get",
+        "get" => ['normalization_context' => ['groups' => ['read']],],
         "put" => [
             "security" => "object.user == user",
         ],
@@ -20,6 +24,13 @@ use Doctrine\ORM\Mapping as ORM;
         ],
     ],
     attributes: ["security" => "is_granted('ROLE_USER')"],
+)]
+
+#[ApiFilter(SearchFilter::class,
+    properties: [
+        'id' => 'exact',
+        'title' => 'partial',
+    ]
 )]
 #[ORM\Entity]
 class Post
@@ -30,14 +41,17 @@ class Post
     #[ApiProperty(identifier: true)]
     private $id;
 
+    #[Groups(["read"])]
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
     public $user;
 
+    #[Groups(["read"])]
     #[ORM\Column(name: "title", type: "string", length: 100)]
     private $title;
 
-     #[ORM\Column(name: "description", type: "string", length: 2000)]
+    #[Groups(["read"])]
+    #[ORM\Column(name: "description", type: "string", length: 2000)]
     private $description;
 
     #[ORM\ManyToOne(targetEntity: MediaObject::class)]

@@ -26,6 +26,8 @@ services:
             context: .
             dockerfile: ./php/Dockerfile
         container_name: php8-container
+        extra_hosts:
+            -   "host.docker.internal:host-gateway"
         ports:
             - "9000:9000"
         volumes:
@@ -46,15 +48,5 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: secret
             MYSQL_PASSWORD: secret
-        networks:
-            - nginx-php8-mysql8-node
-
-    # node
-    node-service:
-        image: node:latest
-        container_name: node-container
-        volumes:
-            - ./app:/var/www/project
-        working_dir: /var/www/project
         networks:
             - nginx-php8-mysql8-node

@@ -2,10 +2,15 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use App\Controller\FollowController;
 use App\Controller\RegistrationController;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -13,19 +18,50 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
     collectionOperations: [
-        'get',
+        'get' => [
+            'normalization_context' => ['groups' => ['read']],
+        ],
         'register' => [
             'method' => 'POST',
             'path' => '/user/register',
             'controller' => RegistrationController::class,
         ],
     ],
-    itemOperations: ['get'],
+    itemOperations: [
+        'get' => [
+            'normalization_context' => ['groups' => ['read']],
+        ],
+        'follow' => [
+            'normalization_context' => ['groups' => ['read']],
+            'method' => 'GET',
+            'path' => '/user/follow/{id}',
+            'controller' => FollowController::class,
+        ],
+        'unfollow' => [
+            'normalization_context' => ['groups' => ['read']],
+            'method' => 'GET',
+            'path' => '/user/unfollow/{id}',
+            'controller' => FollowController::class,
+        ],
+    ],
+)]
+
+#[ApiFilter(SearchFilter::class,
+    properties: [
+        'id' => 'exact',
+        'username' => 'partial',
+    ]
 )]
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public function __construct()
+    {
+        $this->followers = new ArrayCollection();
+        $this->following = new ArrayCollection();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -35,6 +71,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
+    #[Groups(["read"])]
     #[ORM\Column(type: 'string', unique: true)]
     private $username;
 
@@ -44,8 +81,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     private $password;
 
-     #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Post")]
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Post")]
     private $posts;
+
+    #[Groups(["read"])]
+    #[ORM\ManyToMany(mappedBy: "following", targetEntity: "App\Entity\User")]
+    private Collection $followers;
+
+    #[Groups(["read"])]
+    #[ORM\ManyToMany(targetEntity: "App\Entity\User", inversedBy: "followers")]
+    private Collection $following;
 
     public function getId(): ?int
     {
@@ -128,11 +173,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @param mixed $posts
+     * @return Collection
      */
-    public function setPosts($posts): void
+    public function getFollowers(): Collection
     {
-        $this->posts = $posts;
+        return $this->followers;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getFollowing(): Collection
+    {
+        return $this->following;
+    }
+
+    /**
+     * Follow another User
+     *
+     * @param User $user
+     * @return void
+     */
+    public function follow(User $user)
+    {
+        $this->following->add($user);
     }
 
     /**

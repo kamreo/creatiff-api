@@ -13,7 +13,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserRegistrationHandler
 {
     public function handle(User $userData, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em, UserRepository $userRepository){
-        try{
+        try {
             $user = new User();
             $userWithEmail = $userRepository->findBy(['email' => $userData->getEmail()]);
 
@@ -22,8 +22,8 @@ class UserRegistrationHandler
             }
 
             $user->setEmail($userData->getEmail());
-            $user->setNickname($userData->getNickname());
-            $user->setRoles([]);
+            $user->setUsername($userData->getUsername());
+            $user->setRoles($userData->getRoles());
 
             $hashedPassword = $passwordHasher->hashPassword(
                 $user,
@@ -34,8 +34,9 @@ class UserRegistrationHandler
             $em->persist($user);
             $em->flush();
 
-        }catch(\Exception $e){
-            return ['Couldnt create user', Response::HTTP_BAD_REQUEST];        }
+        } catch(\Exception $e) {
+            return ['Couldnt create user', Response::HTTP_BAD_REQUEST];
+        }
 
         return ['Created user successfully', Response::HTTP_CREATED];
     }
