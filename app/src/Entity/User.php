@@ -31,6 +31,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
         'get' => [
             'normalization_context' => ['groups' => ['read']],
         ],
+        'patch' =>  [
+            "security" => "object.user == user",
+            'normalization_context' => ['groups' => ['patch']],
+        ],
         'follow' => [
             'normalization_context' => ['groups' => ['read']],
             'method' => 'GET',
@@ -71,15 +75,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
-    #[Groups(["read"])]
+    #[Groups(["read", "patch"])]
     #[ORM\Column(type: 'string', unique: true)]
     private $username;
 
     #[ORM\Column(type: 'json')]
     private $roles = [];
 
+    #[Groups(["patch"])]
     #[ORM\Column(type: 'string')]
     private $password;
+
+    #[Groups(["read", "patch"])]
+    #[ORM\ManyToOne(targetEntity: MediaObject::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ApiProperty(iri: 'https://schema.org/image')]
+    public ?MediaObject $profileImage = null;
 
     #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Post")]
     private $posts;
@@ -163,6 +174,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * @return MediaObject|null
+     */
+    public function getProfileImage(): ?MediaObject
+    {
+        return $this->profileImage;
+    }
+
+    /**
+     * @param MediaObject|null $profileImage
+     */
+    public function setProfileImage(?MediaObject $profileImage): void
+    {
+        $this->profileImage = $profileImage;
+    }
+
+
 
     /**
      * @return mixed

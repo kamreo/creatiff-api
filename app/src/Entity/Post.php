@@ -15,9 +15,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
         "post",
     ],
     itemOperations: [
-        "get" => ['normalization_context' => ['groups' => ['read']],],
-        "put" => [
+        "get" => [
+            'normalization_context' => ['groups' => ['read']],
+        ],
+        "patch" => [
             "security" => "object.user == user",
+            'normalization_context' => ['groups' => ['patch']],
         ],
         "delete" => [
             "security" => "object.user == user",
@@ -46,14 +49,15 @@ class Post
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
     public $user;
 
-    #[Groups(["read"])]
+    #[Groups(["read", "patch"])]
     #[ORM\Column(name: "title", type: "string", length: 100)]
     private $title;
 
-    #[Groups(["read"])]
+    #[Groups(["read", "patch"])]
     #[ORM\Column(name: "description", type: "string", length: 2000)]
     private $description;
 
+    #[Groups(["read", "patch"])]
     #[ORM\ManyToOne(targetEntity: MediaObject::class)]
     #[ORM\JoinColumn(nullable: true)]
     #[ApiProperty(iri: 'https://schema.org/image')]
