@@ -21,13 +21,7 @@ class RegistrationController extends AbstractController
     private EntityManagerInterface $em;
     private UserRepository $userRepository;
 
-    public function __construct(UserRegistrationHandler $userRegistrationHandler, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em, UserRepository $userRepository)
-    {
-        $this->userRegistrationHandler = $userRegistrationHandler;
-        $this->passwordHasher = $passwordHasher;
-        $this->em = $em;
-        $this->userRepository = $userRepository;
-    }
+
 
     public function __invoke(User $data): JsonResponse
     {

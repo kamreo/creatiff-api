@@ -18,14 +18,9 @@ class FollowController extends AbstractController
     private EntityManagerInterface $em;
     private UserRepository $userRepository;
 
-    public function __construct(FollowHandler $followHandler, EntityManagerInterface $em, UserRepository $userRepository)
-    {
-        $this->followHandler = $followHandler;
-        $this->em = $em;
-        $this->userRepository = $userRepository;
-    }
 
-    public function __invoke(Request $request, $id):Response
+
+    public function __invoke(Request $request, $id):\Symfony\Component\HttpFoundation\JsonResponse
     {
         $targetUser = $this->em->getRepository(User::class)->find($id);
         $user = $this->getUser();

@@ -54,17 +54,9 @@ class MediaObject
     #[Groups(['media_object:read'])]
     public ?string $contentUrl = null;
 
-    /**
-     * @Vich\UploadableField(mapping="media_object", fileNameProperty="filePath")
-     */
-    #[Assert\NotNull(groups: ['media_object_create'])]
-    public ?File $file = null;
 
-    #[ORM\Column(nullable: true)]
-    public ?string $filePath = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+
+
+
 }

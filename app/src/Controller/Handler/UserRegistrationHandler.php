@@ -12,7 +12,12 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserRegistrationHandler
 {
-    public function handle(User $userData, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em, UserRepository $userRepository){
+    /**
+     * @return (int|string)[]
+     *
+     * @psalm-return array{0: 'Couldnt create user'|'Created user successfully'|'User with this email already exists!', 1: 201|400}
+     */
+    public function handle(User $userData, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em, UserRepository $userRepository): array{
         try {
             $user = new User();
             $userWithEmail = $userRepository->findBy(['email' => $userData->getEmail()]);

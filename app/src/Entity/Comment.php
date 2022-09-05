@@ -46,12 +46,12 @@ class Comment
 
     #[Groups(["read"])]
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
+    #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id",  nullable: 'false')]
     public $user;
 
     #[Groups(["read"])]
     #[ORM\ManyToOne(targetEntity: Post::class)]
-    #[ORM\JoinColumn(name:"post_id", referencedColumnName:"id")]
+    #[ORM\JoinColumn(name:"post_id", referencedColumnName:"id",  nullable: 'false')]
     public $post;
 
     #[Groups(["read", "patch"])]
@@ -60,7 +60,86 @@ class Comment
 
     #[Groups(["read"])]
     #[ORM\Column(type: "string", nullable: "true")]
+    #[ApiProperty(required: false)]
     public $commentId;
 
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
 
+    /**
+     * @param mixed $id
+     */
+    public function setId($id): void
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUser()
+    {
+        return $this->user;
+    }
+
+    /**
+     * @param mixed $user
+     */
+    public function setUser($user): void
+    {
+        $this->user = $user;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPost()
+    {
+        return $this->post;
+    }
+
+    /**
+     * @param mixed $post
+     */
+    public function setPost($post): void
+    {
+        $this->post = $post;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+
+    /**
+     * @param mixed $content
+     */
+    public function setContent($content): void
+    {
+        $this->content = $content;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCommentId()
+    {
+        return $this->commentId;
+    }
+
+    /**
+     * @param mixed $commentId
+     */
+    public function setCommentId($commentId): void
+    {
+        $this->commentId = $commentId;
+    }
 }

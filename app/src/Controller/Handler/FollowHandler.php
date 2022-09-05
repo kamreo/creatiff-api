@@ -9,7 +9,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class FollowHandler
 {
-    public function handle(User $user, User $targetUser, EntityManagerInterface $em, UserRepository $userRepository){
+    /**
+     * @return (int|string)[]
+     *
+     * @psalm-return array{0: 'Failed to follow/unfollow user'|'Successfully followed/unfollowed', 1: 201|400}
+     */
+    public function handle(User $user, User $targetUser, EntityManagerInterface $em, UserRepository $userRepository): array{
         try {
             $targetUser->follow($user);
             $em->persist($user);

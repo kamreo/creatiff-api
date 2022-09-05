@@ -72,6 +72,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ApiProperty(identifier: true)]
     private $id;
 
+    /**
+     * @var null|string
+     */
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
@@ -80,8 +83,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $username;
 
     #[ORM\Column(type: 'json')]
-    private $roles = [];
+    private array $roles = [];
 
+    /**
+     * @var null|string
+     */
     #[Groups(["patch"])]
     #[ORM\Column(type: 'string')]
     private $password;
@@ -95,6 +101,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Post")]
     private $posts;
 
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Comment")]
+    private $comments;
+
     #[Groups(["read"])]
     #[ORM\ManyToMany(mappedBy: "following", targetEntity: "App\Entity\User")]
     private Collection $followers;
@@ -103,17 +112,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: "App\Entity\User", inversedBy: "followers")]
     private Collection $following;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+
 
     public function getEmail(): ?string
     {
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(string $email): static
     {
         $this->email = $email;
 
@@ -125,7 +131,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
-    public function setUsername($username): self
+    public function setUsername($username): static
     {
         $this->username = $username;
 
@@ -144,6 +150,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @see UserInterface
+     *
+     * @return string[]
+     *
+     * @psalm-return array<int, 'ROLE_USER'>
      */
     public function getRoles(): array
     {
@@ -154,7 +164,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
-    public function setRoles(array $roles): self
+    public function setRoles(array $roles): static
     {
         $this->roles = $roles;
         return $this;
@@ -168,54 +178,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password): static
     {
         $this->password = $password;
 
         return $this;
     }
 
-    /**
-     * @return MediaObject|null
-     */
-    public function getProfileImage(): ?MediaObject
-    {
-        return $this->profileImage;
-    }
-
-    /**
-     * @param MediaObject|null $profileImage
-     */
-    public function setProfileImage(?MediaObject $profileImage): void
-    {
-        $this->profileImage = $profileImage;
-    }
 
 
 
-    /**
-     * @return mixed
-     */
-    public function getPosts()
-    {
-        return $this->posts;
-    }
 
-    /**
-     * @return Collection
-     */
-    public function getFollowers(): Collection
-    {
-        return $this->followers;
-    }
 
-    /**
-     * @return Collection
-     */
-    public function getFollowing(): Collection
-    {
-        return $this->following;
-    }
+
+
+
+
+
+
+
+
 
     /**
      * Follow another User
@@ -230,6 +212,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @see UserInterface
+     *
+     * @return void
      */
     public function eraseCredentials()
     {
