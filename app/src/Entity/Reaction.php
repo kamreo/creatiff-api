@@ -7,8 +7,9 @@ use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping as ORM;
+
 
 #[ApiResource(
     collectionOperations: [
@@ -31,16 +32,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiFilter(SearchFilter::class,
     properties: [
-        'id' => 'exact',
-        'title' => 'partial',
+        'commentId' => 'exact',
+        'postId' => 'exact',
+        'userId' => 'exact',
     ]
 )]
+
 #[ORM\Entity]
-class Post
+class Reaction
 {
     public function __construct()
     {
-        $this->reactions = new ArrayCollection();
+        $this->posts = new ArrayCollection();
+        $this->comments = new ArrayCollection();
     }
 
     #[ORM\Id]
@@ -50,31 +54,17 @@ class Post
     private $id;
 
     #[Groups(["read"])]
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'posts')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'reactions')]
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
     public User $user;
 
-    #[Groups(["read", "patch"])]
-    #[ORM\Column(name: "title", type: "string", length: 100)]
-    public string $title;
-
-    #[Groups(["read", "patch"])]
-    #[ORM\Column(name: "description", type: "string", length: 2000)]
-    public string $description;
-
-    #[Groups(["read", "patch"])]
-    #[ORM\ManyToOne(targetEntity: MediaObject::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    #[ApiProperty(required: false)]
-    public ?MediaObject $image = null;
-
-    #[ORM\OneToMany(mappedBy: "post", targetEntity: "App\Entity\Comment")]
-    private $comments;
+    #[Groups(["read"])]
+    #[ORM\ManyToMany(targetEntity: Post::class, inversedBy: 'reactions')]
+    public $posts;
 
     #[Groups(["read"])]
-    #[ORM\ManyToMany(targetEntity: Reaction::class, mappedBy: 'posts')]
-    public $reactions;
-
+    #[ORM\ManyToMany(targetEntity: Comment::class, inversedBy: 'reactions')]
+    public $comments;
 
     /**
      * @return mixed
@@ -93,42 +83,34 @@ class Post
     }
 
     /**
-     * @return string
+     * @return ArrayCollection
      */
-    public function getTitle(): string
+    public function getPosts(): ArrayCollection
     {
-        return $this->title;
+        return $this->posts;
     }
 
     /**
-     * @return string
+     * @param ArrayCollection $posts
      */
-    public function getDescription(): string
+    public function setPosts(ArrayCollection $posts): void
     {
-        return $this->description;
-    }
-
-    /**
-     * @return MediaObject|null
-     */
-    public function getImage(): ?MediaObject
-    {
-        return $this->image;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getComments()
-    {
-        return $this->comments;
+        $this->posts = $posts;
     }
 
     /**
      * @return ArrayCollection
      */
-    public function getReactions(): ArrayCollection
+    public function getComments(): ArrayCollection
     {
-        return $this->reactions;
+        return $this->comments;
+    }
+
+    /**
+     * @param ArrayCollection $comments
+     */
+    public function setComments(ArrayCollection $comments): void
+    {
+        $this->comments = $comments;
     }
 }

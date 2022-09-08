@@ -7,6 +7,7 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -38,6 +39,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 class Comment
 {
+    public function __construct()
+    {
+        $this->reactions = new ArrayCollection();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -45,12 +51,12 @@ class Comment
     private $id;
 
     #[Groups(["read"])]
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'comments')]
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id",  nullable: 'false')]
     public $user;
 
     #[Groups(["read"])]
-    #[ORM\ManyToOne(targetEntity: Post::class)]
+    #[ORM\ManyToOne(targetEntity: Post::class , inversedBy: 'comments')]
     #[ORM\JoinColumn(name:"post_id", referencedColumnName:"id",  nullable: 'false')]
     public $post;
 
@@ -62,6 +68,10 @@ class Comment
     #[ORM\Column(type: "string", nullable: "true")]
     #[ApiProperty(required: false)]
     public $commentId;
+
+    #[Groups(["read"])]
+    #[ORM\ManyToMany(targetEntity: Reaction::class, mappedBy: 'comments')]
+    public $reactions;
 
     /**
      * @return mixed
@@ -141,5 +151,13 @@ class Comment
     public function setCommentId($commentId): void
     {
         $this->commentId = $commentId;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getReactions(): ArrayCollection
+    {
+        return $this->reactions;
     }
 }

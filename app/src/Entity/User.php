@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     collectionOperations: [
         'get' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
         ],
         'register' => [
             'method' => 'POST',
@@ -29,20 +29,20 @@ use Symfony\Component\Serializer\Annotation\Groups;
     ],
     itemOperations: [
         'get' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
         ],
         'patch' =>  [
             "security" => "object.user == user",
             'normalization_context' => ['groups' => ['patch']],
         ],
         'follow' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
             'method' => 'GET',
             'path' => '/user/follow/{id}',
             'controller' => FollowController::class,
         ],
         'unfollow' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
             'method' => 'GET',
             'path' => '/user/unfollow/{id}',
             'controller' => FollowController::class,
@@ -78,7 +78,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
-    #[Groups(["read", "patch"])]
+    #[Groups(["read", "user:read", "patch"])]
     #[ORM\Column(type: 'string', unique: true)]
     private $username;
 
@@ -104,15 +104,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Comment")]
     private $comments;
 
-    #[Groups(["read"])]
+    #[Groups(["user:read"])]
     #[ORM\ManyToMany(mappedBy: "following", targetEntity: "App\Entity\User")]
     private Collection $followers;
 
-    #[Groups(["read"])]
+    #[Groups(["user:read"])]
     #[ORM\ManyToMany(targetEntity: "App\Entity\User", inversedBy: "followers")]
     private Collection $following;
 
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Reaction")]
+    private $reactions;
 
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getEmail(): ?string
     {
@@ -136,6 +143,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->username = $username;
 
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPosts()
+    {
+        return $this->posts;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getFollowers(): Collection
+    {
+        return $this->followers;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getFollowing(): Collection
+    {
+        return $this->following;
     }
 
     /**
@@ -184,20 +215,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * Follow another User
