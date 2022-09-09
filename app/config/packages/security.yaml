@@ -43,6 +43,7 @@ security:
         - { path: ^/api/docs, roles: PUBLIC_ACCESS } # Allows accessing the Swagger UI
         - { path: ^/authentication_token, roles: PUBLIC_ACCESS }
         - { path: ^/api/user/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/posts, roles: PUBLIC_ACCESS }
         - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

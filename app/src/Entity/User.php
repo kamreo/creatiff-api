@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     collectionOperations: [
         'get' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
         ],
         'register' => [
             'method' => 'POST',
@@ -29,16 +29,20 @@ use Symfony\Component\Serializer\Annotation\Groups;
     ],
     itemOperations: [
         'get' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
+        ],
+        'patch' =>  [
+            "security" => "object.user == user",
+            'normalization_context' => ['groups' => ['patch']],
         ],
         'follow' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
             'method' => 'GET',
             'path' => '/user/follow/{id}',
             'controller' => FollowController::class,
         ],
         'unfollow' => [
-            'normalization_context' => ['groups' => ['read']],
+            'normalization_context' => ['groups' => ['user:read']],
             'method' => 'GET',
             'path' => '/user/unfollow/{id}',
             'controller' => FollowController::class,
@@ -68,29 +72,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ApiProperty(identifier: true)]
     private $id;
 
+    /**
+     * @var null|string
+     */
     #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
-    #[Groups(["read"])]
+    #[Groups(["read", "user:read", "patch"])]
     #[ORM\Column(type: 'string', unique: true)]
     private $username;
 
     #[ORM\Column(type: 'json')]
-    private $roles = [];
+    private array $roles = [];
 
+    /**
+     * @var null|string
+     */
+    #[Groups(["patch"])]
     #[ORM\Column(type: 'string')]
     private $password;
+
+    #[Groups(["read", "patch"])]
+    #[ORM\ManyToOne(targetEntity: MediaObject::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    #[ApiProperty(iri: 'https://schema.org/image')]
+    public ?MediaObject $profileImage = null;
 
     #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Post")]
     private $posts;
 
-    #[Groups(["read"])]
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Comment")]
+    private $comments;
+
+    #[Groups(["user:read"])]
     #[ORM\ManyToMany(mappedBy: "following", targetEntity: "App\Entity\User")]
     private Collection $followers;
 
-    #[Groups(["read"])]
+    #[Groups(["user:read"])]
     #[ORM\ManyToMany(targetEntity: "App\Entity\User", inversedBy: "followers")]
     private Collection $following;
+
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: "App\Entity\Reaction")]
+    private $reactions;
+
 
     public function getId(): ?int
     {
@@ -102,7 +126,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(string $email): static
     {
         $this->email = $email;
 
@@ -114,52 +138,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
-    public function setUsername($username): self
+    public function setUsername($username): static
     {
         $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): self
-    {
-        $this->roles = $roles;
-        return $this;
-    }
-
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): self
-    {
-        $this->password = $password;
 
         return $this;
     }
@@ -189,6 +170,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     *
+     * @return string[]
+     *
+     * @psalm-return array<int, 'ROLE_USER'>
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
      * Follow another User
      *
      * @param User $user
@@ -201,6 +229,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @see UserInterface
+     *
+     * @return void
      */
     public function eraseCredentials()
     {

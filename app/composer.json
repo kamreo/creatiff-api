@@ -35,11 +35,15 @@
         "vich/uploader-bundle": "^1.21"
     },
     "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^3.4",
+        "justinrainbow/json-schema": "^5.2",
         "phpunit/phpunit": "^9.5",
         "symfony/browser-kit": "6.0.*",
         "symfony/css-selector": "6.0.*",
+        "symfony/http-client": "6.0.*",
         "symfony/maker-bundle": "^1.39",
-        "symfony/phpunit-bridge": "^6.1"
+        "symfony/phpunit-bridge": "^6.1",
+        "vimeo/psalm": "^4.27"
     },
     "config": {
         "allow-plugins": {
@@ -81,7 +85,19 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "lint": [
+            "vendor/bin/psalm src/ --show-info=true --find-dead-code"
+        ],
+        "fix:issues": [
+            "vendor/bin/psalm --alter --issues=all"
+        ],
+        "test:unit": "vendor/bin/phpunit tests/Unit --colors=always",
+        "test:e2e": [
+            "tests/E2E/fixtures/load.sh",
+            "vendor/bin/phpunit --testsuite E2E --colors=always"
+        ],
+        "cache:wipe": "rm -rf var/cache/*"
     },
     "conflict": {
         "symfony/symfony": "*"

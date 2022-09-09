@@ -6,24 +6,26 @@ use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiProperty;
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
     collectionOperations: [
-        "get" => ['normalization_context' => ['groups' => ['read']],],
+        "get",
         "post",
     ],
     itemOperations: [
-        "get" => ['normalization_context' => ['groups' => ['read']],],
-        "put" => [
+        "get",
+        "patch" => [
             "security" => "object.user == user",
         ],
         "delete" => [
             "security" => "object.user == user",
         ],
     ],
-    attributes: ["security" => "is_granted('ROLE_USER')"],
+    denormalizationContext: ['groups' => ['post:write']],
+    normalizationContext: ['groups' => ['post:read']],
 )]
 
 #[ApiFilter(SearchFilter::class,
@@ -35,29 +37,43 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity]
 class Post
 {
+    public function __construct()
+    {
+        $this->reactions = new ArrayCollection();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     #[ApiProperty(identifier: true)]
     private $id;
 
-    #[Groups(["read"])]
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Groups(["post:read"])]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
-    public $user;
+    public User $user;
 
-    #[Groups(["read"])]
+    #[Groups(["post:read", "post:write"])]
     #[ORM\Column(name: "title", type: "string", length: 100)]
-    private $title;
+    public string $title;
 
-    #[Groups(["read"])]
+    #[Groups(["post:read", "post:write"])]
     #[ORM\Column(name: "description", type: "string", length: 2000)]
-    private $description;
+    public string $description;
 
+    #[Groups(["post:read", "post:write"])]
     #[ORM\ManyToOne(targetEntity: MediaObject::class)]
     #[ORM\JoinColumn(nullable: true)]
-    #[ApiProperty(iri: 'https://schema.org/image')]
+    #[ApiProperty(required: false)]
     public ?MediaObject $image = null;
+
+    #[ORM\OneToMany(mappedBy: "post", targetEntity: "App\Entity\Comment")]
+    private $comments;
+
+    #[Groups(["post:read"])]
+    #[ORM\ManyToMany(targetEntity: Reaction::class, mappedBy: 'posts')]
+    public $reactions;
+
 
     /**
      * @return mixed
@@ -65,14 +81,6 @@ class Post
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id): void
-    {
-        $this->id = $id;
     }
 
     /**
@@ -84,27 +92,11 @@ class Post
     }
 
     /**
-     * @param User $user
-     */
-    public function setUser(User $user): void
-    {
-        $this->user = $user;
-    }
-
-    /**
      * @return string
      */
     public function getTitle(): string
     {
         return $this->title;
-    }
-
-    /**
-     * @param string $title
-     */
-    public function setTitle(string $title): void
-    {
-        $this->title = $title;
     }
 
     /**
@@ -116,14 +108,6 @@ class Post
     }
 
     /**
-     * @param string $description
-     */
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
-    }
-
-    /**
      * @return MediaObject|null
      */
     public function getImage(): ?MediaObject
@@ -132,10 +116,18 @@ class Post
     }
 
     /**
-     * @param MediaObject|null $image
+     * @return mixed
      */
-    public function setImage(?MediaObject $image): void
+    public function getComments()
     {
-        $this->image = $image;
+        return $this->comments;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getReactions(): ArrayCollection
+    {
+        return $this->reactions;
     }
 }
