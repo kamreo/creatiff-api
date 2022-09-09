@@ -139,6 +139,9 @@
     "jms/metadata": {
         "version": "2.6.1"
     },
+    "justinrainbow/json-schema": {
+        "version": "5.2.12"
+    },
     "laminas/laminas-code": {
         "version": "4.5.1"
     },
@@ -393,6 +396,12 @@
             "./src/Controller/.gitignore",
             "./src/Kernel.php"
         ]
+    },
+    "symfony/http-client": {
+        "version": "v6.0.12"
+    },
+    "symfony/http-client-contracts": {
+        "version": "v3.0.2"
     },
     "symfony/http-foundation": {
         "version": "v6.0.7"

@@ -12,21 +12,20 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
     collectionOperations: [
-        "get" => ['normalization_context' => ['groups' => ['read']],],
+        "get",
         "post",
     ],
     itemOperations: [
-        "get" => [
-            'normalization_context' => ['groups' => ['read']],
-        ],
+        "get",
         "patch" => [
             "security" => "object.user == user",
-            'normalization_context' => ['groups' => ['patch']],
         ],
         "delete" => [
             "security" => "object.user == user",
         ],
     ],
+    denormalizationContext: ['groups' => ['post:write']],
+    normalizationContext: ['groups' => ['post:read']],
 )]
 
 #[ApiFilter(SearchFilter::class,
@@ -49,20 +48,20 @@ class Post
     #[ApiProperty(identifier: true)]
     private $id;
 
-    #[Groups(["read"])]
+    #[Groups(["post:read"])]
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(name:"user_id", referencedColumnName:"id")]
     public User $user;
 
-    #[Groups(["read", "patch"])]
+    #[Groups(["post:read", "post:write"])]
     #[ORM\Column(name: "title", type: "string", length: 100)]
     public string $title;
 
-    #[Groups(["read", "patch"])]
+    #[Groups(["post:read", "post:write"])]
     #[ORM\Column(name: "description", type: "string", length: 2000)]
     public string $description;
 
-    #[Groups(["read", "patch"])]
+    #[Groups(["post:read", "post:write"])]
     #[ORM\ManyToOne(targetEntity: MediaObject::class)]
     #[ORM\JoinColumn(nullable: true)]
     #[ApiProperty(required: false)]
@@ -71,7 +70,7 @@ class Post
     #[ORM\OneToMany(mappedBy: "post", targetEntity: "App\Entity\Comment")]
     private $comments;
 
-    #[Groups(["read"])]
+    #[Groups(["post:read"])]
     #[ORM\ManyToMany(targetEntity: Reaction::class, mappedBy: 'posts')]
     public $reactions;
 
