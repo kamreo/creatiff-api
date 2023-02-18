@@ -11,5 +11,5 @@ and create posts in different format. You can also react and comment posts.
 ## Tests
 In app directory run:
 * `composer test:unit` to run unit tests
-* `composer test e2e` to run ent to end tests
+* `composer test e2e` to run end to end tests
 * `composer lint` to run static code analysis 
