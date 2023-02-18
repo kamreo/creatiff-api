@@ -1,6 +1,6 @@
 # creatiff-api
 API for my bachelor thesis, created using Symfony and API Platform. It resembles social platform, where you can register 
-and create posts in diffrent format. You can also react and comment posts.
+and create posts in different format. You can also react and comment posts.
 
 ## Installation
 1. Clone this repo
@@ -10,6 +10,6 @@ and create posts in diffrent format. You can also react and comment posts.
 
 ## Tests
 In app directory run:
-`composer test:unit` to run unit tests
-`composer test e2e` to run ent to end tests
-`composer lint` to run static code analysis 
+* `composer test:unit` to run unit tests
+* `composer test e2e` to run ent to end tests
+* `composer lint` to run static code analysis 
