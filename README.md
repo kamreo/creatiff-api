@@ -1,6 +1,6 @@
 # creatiff-api
 API for my bachelor thesis, created using Symfony and API Platform. It resembles social platform, where you can register 
-and create posts in different format. You can also react and comment posts.
+and create posts in different format. You can also react and comment posts. It has a lot of filter options to search for a content you are looking for.
 
 ## Installation
 1. Clone this repo
